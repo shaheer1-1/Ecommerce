@@ -61,7 +61,7 @@
 
   
 </style>
-@yield('styles')
+@yield('pageSpecificCSS')
 
 </head>
 <body class="js">

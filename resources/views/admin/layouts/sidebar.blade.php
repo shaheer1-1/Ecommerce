@@ -30,13 +30,13 @@
 								<h3>Components</h3>
 							</li>
 							<li class="slide">
-								<a class="side-menu__item" data-bs-toggle="slide" href="#">
+								<a class="side-menu__item" data-bs-toggle="slide" href="{{ route('admin.categories.index') }}">
 									<span class="side-menu__label">Categories</span>
 								</a>
 								
 							</li>
 							<li class="slide">
-								<a class="side-menu__item" data-bs-toggle="slide" href="#">
+								<a class="side-menu__item" data-bs-toggle="slide" href="{{ route('admin.products.index') }}">
 									<span class="side-menu__label">Products</span></a>
 								
 							</li>
