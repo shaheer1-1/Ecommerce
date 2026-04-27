@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rules\Password;
 class AuthRequest extends FormRequest
 {
     
@@ -19,7 +19,7 @@ class AuthRequest extends FormRequest
             return [
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|min:8|confirmed',
+                'password' => ['nullable','confirmed',Password::min(8)->mixedCase()->letters()->numbers()->symbols()],
             ];
         }
 

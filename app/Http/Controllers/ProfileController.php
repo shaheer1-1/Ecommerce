@@ -12,10 +12,11 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-        $user->load('address');
-
+        $user->load('addresses');
+        $addr = $user->addresses->first();
         return view('frontend.profile', [
             'user' => $user,
+            'addr' => $addr,
         ]);
     }
 
@@ -42,12 +43,12 @@ class ProfileController extends Controller
             'shipping_country',
             'shipping_zip',
         ])->toArray();
-            $address = $user->address()->first();
-    
+        $address = $user->addresses()->first();
+
         if ($address) {
             $address->update($addressData);
         } else {
-            $user->address()->create($addressData);
+            $user->addresses()->create($addressData);
         }
     
         return redirect()

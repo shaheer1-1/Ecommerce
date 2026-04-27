@@ -15,7 +15,7 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    public function showLoginForm(): View
+    public function loginForm(): View
     {
         return view('frontend.auth.login');
     }
@@ -44,7 +44,7 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Logout successful');
     }
 
-    public function showRegisterForm(): View
+    public function registerForm(): View
     {
         return view('frontend.auth.register');
     }
@@ -63,25 +63,27 @@ class AuthController extends Controller
         return redirect()->route('login')->with('success', 'Registration successful');
     }
 
-    public function showForgotForm(): View
+    public function forgotForm(): View
     {
         return view('frontend.auth.forgot-password');
     }
-
     public function sendResetLink(AuthRequest $request): RedirectResponse
     {
         $request->validated();
-
+    
         $status = Password::sendResetLink(
             $request->only('email')
         );
-
-        return $status === Password::RESET_LINK_SENT
-            ? back()->with('success', __($status))
-            : back()->withInput($request->only('email'))->withErrors(['email' => __($status)]);
+    
+        if ($status === 'passwords.sent') {
+            return back()->with('success', 'Reset link sent!');
+        }
+    
+        return back()
+            ->withInput($request->only('email'))
+            ->withErrors(['email' => 'Something went wrong']);
     }
-
-    public function showResetForm(Request $request, string $token): View
+    public function resetForm(Request $request, string $token): View
     {
         return view('frontend.auth.reset-password', [
             'token' => $token,
@@ -89,7 +91,7 @@ class AuthController extends Controller
         ]);
     }
 
-    public function resetPassword(AuthRequest $request): RedirectResponse
+    public function reset(AuthRequest $request): RedirectResponse
     {
         $request->validated();
 

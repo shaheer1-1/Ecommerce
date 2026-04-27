@@ -2,10 +2,6 @@
 
 @section('title', 'My profile')
 
-@php
-    $addr = $user->address;
-@endphp
-
 @section('main-content')
     <section class="shop login section">
         <div class="container">
