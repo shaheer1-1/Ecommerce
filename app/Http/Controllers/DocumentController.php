@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
+use App\Models\Category;
+use App\Models\Product;
 class DocumentController extends Controller
 {
     public function secureDocumentDownload($type, $id, $action)
@@ -24,6 +24,8 @@ class DocumentController extends Controller
         $documentTypes = [
             'user-profile-image'       => [\App\Models\User::class, 'profile_image'],
             'category-image'       => [\App\Models\Category::class, 'image'],
+            'product-image'       => [\App\Models\Product::class, 'image'],
+
         ];
 
         return $this->handleDocumentDownload($type, $id, $action, $documentTypes);

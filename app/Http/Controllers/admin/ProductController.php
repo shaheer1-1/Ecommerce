@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
+use App\Traits\Search;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Category;
@@ -11,13 +12,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
+    use Search;
+
     public function index(Request $request)
     {
-        $search = $request->input('search');
         $query = Product::query();
-        if ($search) {
-            $query->where('name', 'like', '%'.$search.'%');
-        }
+        $search = $this->applyNameSearch($query, $request);
         $products = $query->paginate(10)->withQueryString();
 
         return view('admin.products.index', compact('products', 'search'));
@@ -31,13 +31,24 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
         $product = Product::create($validated);
-        if ($request->hasFile('image')) {
-            $product->image = $request->file('image')->store(
-                'product-image/' . $product->id,
-                'public'
-            );
-            $product->save();
+        if($request->hasFile('image'))
+        {
+            $file = $request->file('image');
+            $destinationPath = "product-image/";
+            $fileName = $file->getClientOriginalName();
+            $newFileName = getFileName_uniq($destinationPath, $fileName);
+            $filePath = Storage::putFileAs($destinationPath, $file, $newFileName);
+            $product = Product::find($product->id);
+
+            if( $product->image != '' && Storage::exists($product->image) )
+            {
+                Storage::delete($product->image);
+            }
+
+            $product->image = $filePath;
         }
+
+        $product->save();
         return redirect()->route('admin.products.index')->with('success', 'Product created successfully');
     }
 
@@ -54,6 +65,9 @@ class ProductController extends Controller
         $product = Product::find($id);
         $product->update($validated);
         if ($request->hasFile('image')) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
             $product->image = $request->file('image')->store(
                 'product-image/' . $product->id,
                 'public'
@@ -65,10 +79,10 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $product->delete();
         if ($product->image) {
             Storage::disk('public')->delete($product->image);
         }
+        $product->delete();
         return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully');
     }
 }

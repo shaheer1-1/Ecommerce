@@ -62,6 +62,28 @@
 	<script src="{{ asset('admin/assets/js/custom.js') }}"></script>
 
 	@yield('pageSpecificJS')
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (session('success'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: @json(session('success')),
+                    timer: 3500,
+                    timerProgressBar: true,
+                    showConfirmButton: true
+                });
+            @endif
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: @json(session('error'))
+                });
+            @endif
+        });
+    </script>
 </body>
 
 </html>

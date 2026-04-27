@@ -11,11 +11,6 @@
 			<div class="col-lg-8">
 				<div class="card">
 					<div class="card-body">
-						@if ($categories->isEmpty())
-							<a href="{{ route('admin.categories.create') }}" class="btn btn-primary">Create
-								category</a>
-							<a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Back</a>
-						@else
 							<form method="POST" action="{{ route('admin.products.store') }}"
 								enctype="multipart/form-data">
 								@csrf
@@ -65,7 +60,6 @@
 								<button type="submit" class="btn btn-primary">Save</button>
 								<a href="{{ route('admin.products.index') }}" class="btn btn-secondary">Cancel</a>
 							</form>
-						@endif
 					</div>
 				</div>
 			</div>

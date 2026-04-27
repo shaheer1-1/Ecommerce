@@ -40,7 +40,7 @@
                                         <a href="javascript:void(0)">
                                             @php
                                                 $pimg = $product->image
-                                                    ? asset('storage/' . $product->image)
+                                                    ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view'])
                                                     : 'https://via.placeholder.com/300x350';
                                             @endphp
                                             <img class="default-img" src="{{ $pimg }}" alt="{{ $product->name }}">
@@ -112,7 +112,7 @@
                             <div class="product-gallery">
                                 <div class="quickview-slider-active">
                                     <div class="single-slider">
-                                        <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://via.placeholder.com/400x450' }}"
+                                        <img src="{{ $product->image ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view']) : 'https://via.placeholder.com/400x450' }}"
                                             alt="{{ $product->name }}">
                                     </div>
                                 </div>

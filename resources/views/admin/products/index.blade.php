@@ -9,7 +9,7 @@
             <div>
                 <h1 class="page-title">Products</h1>
             </div>
-        
+         
             <div class="d-flex align-items-center gap-2 flex-wrap">
         
                 @include('partials.search-bar', [
@@ -47,7 +47,7 @@
 										<tr>
 											<td>
 												@if ($row->image)
-													<img src="{{ asset('storage/' . $row->image) }}" alt="" width="60" class="rounded">
+													<img src="{{ route('admin.document.download', ['type' => 'product-image', 'id' => $row->id, 'action' => 'view']) }}" alt="" width="60" class="rounded">
 												@else
 													<span class="text-muted small">—</span>
 												@endif
