@@ -23,6 +23,9 @@ class CartController extends Controller
     }
     public function add(Product $product)
     {
+        if ($product->stock < 1) {
+            return back()->with('error', 'Product is out of stock');
+        } 
         $cart = Cart::where([
             'user_id' => request()->user()->id
         ])->first();
@@ -32,39 +35,44 @@ class CartController extends Controller
 
         if ($cartItem) {
             $cartItem->increment('quantity');
+            $product->decrement('stock');
         } else {
             $cart->items()->create([
                 'product_id' => $product->id,
                 'quantity' => 1,
                 'price' => $product->price,
             ]);
+            $product->decrement('stock');
         }
 
         return back()->with('success', 'Product added to cart');
     }
     public function update(Request $request, CartItem $item)
     {
-        $line = CartItem::find($item->id);
-
-        if (! $line) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Item not found'
-            ], 404);
-        }
-
+        $cartItem = CartItem::findOrFail($item->id);
+    
+        $product = Product::findOrFail($cartItem->product_id);
+    
         $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
-
-        $line->update([
-            'quantity' => $request->quantity
+    
+        $oldQty = $cartItem->quantity;
+        $newQty = $request->quantity;
+            if ($product->stock + $oldQty < $newQty) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product is out of stock'
+            ]);
+        }
+            $cartItem->update([
+            'quantity' => $newQty
         ]);
-
-        $cart = Cart::where([
-            'user_id' => request()->user()->id
-        ])->first();
-
+        $product->stock = $product->stock + $oldQty - $newQty;
+        $product->save();
+    
+        $cart = Cart::where('user_id', request()->user()->id)->first();
+    
         return response()->json([
             'success'   => true,
             'message'   => 'Cart updated successfully',
@@ -75,13 +83,13 @@ class CartController extends Controller
     public function remove(CartItem $item)
     {
         $cartItem = CartItem::find($item->id);
-
         if (! $cartItem) {
             return back()->with('error', 'Item not found');
         }
-
+        $product = Product::findOrFail($cartItem->product_id);
+        $product->stock += $cartItem->quantity;
+        $product->save();
         $cartItem->delete();
-
         return back()->with('success', 'Item removed successfully');
     }
 }

@@ -10,6 +10,26 @@ if (! function_exists('ensureUserHasRole')) {
         return $user !== null && ($user->type ?? '') === $role;
     }
 }
+if (! function_exists('getHeaderCart')) {
+function getHeaderCart()
+{
+                    $headerCart = ensureUserHasRole('user')
+                        ? auth()->user()->cart()->with('items.product')->first()
+                        : null;
+                
+                    $headerItems = $headerCart ? $headerCart->items : collect();
+                
+                    $headerQty = $headerItems->sum('quantity');
+                
+                    $headerTotal = $headerItems->sum(fn($row) => $row->quantity * $row->price);
+    return [
+        'cart' => $headerCart,
+        'items' => $headerItems,
+        'qty' => $headerQty,
+        'total' => $headerTotal
+    ];
+}
+}
 function getFileName_uniq($filePath, $filename)
 {
     while (true) {

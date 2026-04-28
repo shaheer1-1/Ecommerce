@@ -62,17 +62,9 @@
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-3 col-12">
-                    @php
-                    $headerCart = ensureUserHasRole('user')
-                        ? auth()->user()->cart()->with('items.product')->first()
-                        : null;
-                
-                    $headerItems = $headerCart ? $headerCart->items : collect();
-                
-                    $headerQty = $headerItems->sum('quantity');
-                
-                    $headerTotal = $headerItems->sum(fn($row) => $row->quantity * $row->price);
-                @endphp
+                        @php
+                        $headerData = getHeaderCart();
+                        @endphp
                     <div class="right-bar">
                         @auth
                         <div class="sinlge-bar">
@@ -110,16 +102,16 @@
                             <div class="sinlge-bar flex-shrink-0">
                                 <a href="{{ ensureUserHasRole('user') ? route('cart.index') : route('login') }}"
                                     class="single-icon" title="Cart"><i class="ti-bag"></i> <span
-                                        class="total-count cart-count">{{ $headerQty }}</span></a>
+                                        class="total-count cart-count">{{ $headerData['qty'] }}</span></a>
                             </div>
                             @auth
                                 <div class="shopping-item">
                                     <div class="dropdown-cart-header">
-                                        <span>{{ $headerQty }} Items</span>
+                                        <span>{{ $headerData['qty'] }} Items</span>
                                         <a href="{{ route('cart.index') }}">View Cart</a>
                                     </div>
                                     <ul class="shopping-list">
-                                        @forelse ($headerItems as $item)
+                                        @forelse ($headerData['items'] as $item)
                                             @php
                                                 $product = $item->product;
                                                 $productName = $product ? $product->name : 'Product';
@@ -152,7 +144,7 @@
                                     <div class="bottom">
                                         <div class="total">
                                             <span>Total</span>
-                                            <span class="total-amount">${{ number_format((float) $headerTotal, 2) }}</span>
+                                            <span class="total-amount">${{ number_format((float) $headerData['total'], 2) }}</span>
                                         </div>
                                         <a href="{{ route('cart.index') }}" class="btn animate">Cart</a>
                                     </div>
