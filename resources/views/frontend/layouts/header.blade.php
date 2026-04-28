@@ -6,7 +6,6 @@
                 <div class="col-lg-6 col-md-12 col-12">
                     <div class="right-content">
                         <ul class="list-main">
-                        
                             @auth 
                                 @if(ensureUserHasRole('admin'))
                                     <li><i class="ti-user"></i> <a href="{{ route('admin.dashboard') }}" rel="noopener">Dashboard</a></li>
@@ -63,6 +62,17 @@
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-3 col-12">
+                    @php
+                    $headerCart = ensureUserHasRole('user')
+                        ? auth()->user()->cart()->with('items.product')->first()
+                        : null;
+                
+                    $headerItems = $headerCart ? $headerCart->items : collect();
+                
+                    $headerQty = $headerItems->sum('quantity');
+                
+                    $headerTotal = $headerItems->sum(fn($row) => $row->quantity * $row->price);
+                @endphp
                     <div class="right-bar">
                         @auth
                         <div class="sinlge-bar">
@@ -70,7 +80,8 @@
                         </div>
                         @endauth
                         <div class="sinlge-bar shopping">
-                            <a href="" class="single-icon"><i class="fa fa-heart-o"></i> <span class="total-count">0</span></a>
+                            <a href="" class="single-icon"><i class="fa fa-heart-o"></i> <span <span class="total-count wishlist-count">0</span>
+                                </span></a>
                             @auth
                                 <div class="shopping-item">
                                     <div class="dropdown-cart-header">
@@ -96,27 +107,54 @@
                             @endauth
                         </div>
                         <div class="sinlge-bar shopping">
-                            <a href="" class="single-icon"><i class="ti-bag"></i> <span class="total-count">0</span></a>
+                            <div class="sinlge-bar flex-shrink-0">
+                                <a href="{{ ensureUserHasRole('user') ? route('cart.index') : route('login') }}"
+                                    class="single-icon" title="Cart"><i class="ti-bag"></i> <span
+                                        class="total-count cart-count">{{ $headerQty }}</span></a>
+                            </div>
                             @auth
                                 <div class="shopping-item">
                                     <div class="dropdown-cart-header">
-                                        <span>0 Items</span>
-                                        <a href="">View Cart</a>
+                                        <span>{{ $headerQty }} Items</span>
+                                        <a href="{{ route('cart.index') }}">View Cart</a>
                                     </div>
                                     <ul class="shopping-list">
-                                                <li>
-                                                <a href="" class="remove" title="Remove this item"><i class="fa fa-remove"></i></a>
-                                                <a class="cart-img" href="#"><img src="" alt=""></a>
-                                                <h4><a href="" target="_blank">Product Title</a></h4>
-                                                <p class="quantity">1 x - <span class="amount">$0.00</span></p>
+                                        @forelse ($headerItems as $item)
+                                            @php
+                                                $product = $item->product;
+                                                $productName = $product ? $product->name : 'Product';
+                                                $productImg = $product && $product->image
+                                                    ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view'])
+                                                    : 'https://via.placeholder.com/80x80';
+                                            @endphp
+                                            <li>
+                                                <a href="{{ route('cart.remove', $item->id) }}" class="remove" title="Remove this item">
+                                                    <i class="fa fa-remove"></i>
+                                                </a>
+                                                <a class="cart-img" href="{{ route('cart.index') }}">
+                                                    <img src="{{ $productImg }}" alt="{{ $productName }}">
+                                                </a>
+                                                <h4>
+                                                    <a href="{{ route('cart.index') }}">{{ $productName }}</a>
+                                                </h4>
+                                                <p class="quantity">
+                                                    {{ $item->quantity }} x - <span class="amount">${{ number_format((float) $item->price, 2) }}</span>
+                                                </p>
                                             </li>
+                                        @empty
+                                            <li>
+                                                <div class="p-3 text-center">
+                                                    Your cart is empty.
+                                                </div>
+                                            </li>
+                                        @endforelse
                                     </ul>
                                     <div class="bottom">
                                         <div class="total">
                                             <span>Total</span>
-                                            <span class="total-amount">$0.00</span>
+                                            <span class="total-amount">${{ number_format((float) $headerTotal, 2) }}</span>
                                         </div>
-                                        <a href="" class="btn animate">Checkout</a>
+                                        <a href="{{ route('cart.index') }}" class="btn animate">Cart</a>
                                     </div>
                                 </div>
                             @endauth
@@ -132,13 +170,12 @@
                 <div class="row">
                     <div class="col-lg-12 col-12">
                         <div class="menu-area">
-                            <!-- Main Menu -->
                             <nav class="navbar navbar-expand-lg">
                                 <div class="navbar-collapse">	
                                     <div class="nav-inner">	
                                         <ul class="nav main-menu menu navbar-nav">
-                                            <li class="{{Request::path()=='home' ? 'active' : ''}}"><a href="">Home</a></li>
-                                                <li class="@if(Request::path()=='product-grids'||Request::path()=='product-lists')  active  @endif"><a href="">Products</a><span class="new">New</span></li>												
+                                            <li class="{{Request::path()=='home' ? 'active' : ''}}"><a href="/">Home</a></li>
+                                                <li class="@if(Request::path()=='product-grids'||Request::path()=='product-lists')  active  @endif"><a href="/">Products</a><span class="new">New</span></li>												
                                         </ul>
                                     </div>
                                 </div>

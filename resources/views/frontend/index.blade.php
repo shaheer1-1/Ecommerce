@@ -58,7 +58,7 @@
                                             <div class="product-action-2">
                                                 @auth
                                                     <a title="Add to cart"
-                                                        href="">Add to cart</a>
+                                                        href="{{ route('cart.add', $product->id) }}">Add to cart</a>
                                                 @else
                                                     <a title="Add to cart" href="{{ route('login') }}">Add to
                                                         cart</a>
@@ -147,7 +147,7 @@
                                 @endif
                                 <div class="add-to-cart pt-2">
                                     @auth
-                                        <a href="" class="btn">Add to cart</a>
+                                        <a href="{{ route('cart.add', $product->id) }}" class="btn">Add to cart</a>
                                     @else
                                         <a href="{{ route('login') }}" class="btn">Login to add to cart</a>
                                     @endauth
