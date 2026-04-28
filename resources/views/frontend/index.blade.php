@@ -11,48 +11,82 @@
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="product-info">
-                        <div class="nav-main">
-                            <!-- Tab Nav -->
-                            <ul class="nav nav-tabs filter-tope-group" id="myTab" role="tablist">
-                                <button class="btn" style="background:black" data-filter="*">All Products</button>
-                            </ul>
-                        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="product-info">
+                    <div class="nav-main">
+                        <ul class="nav nav-tabs filter-tope-group" id="myTab" role="tablist">
+                            <li class="d-inline-block">
+                                <button class="btn how-active1" type="button" style="background: black"
+                                    data-filter="*">All Products</button>
+                            </li>
+                            @foreach ($categories as $cat)
+                                <li class="d-inline-block">
+                                    <button class="btn" type="button" style="background: none; color: black;"
+                                        data-filter=".cat-{{ $cat->id }}">
+                                        {{ $cat->name }}
+                                    </button>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
 
-                        <div class="tab-content isotope-grid" id="myTabContent">
-
-                            <div class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item 1">
+                    <div class="tab-content isotope-grid" id="myTabContent">
+                        @forelse ($products as $product)
+                            <div
+                                class="col-sm-6 col-md-4 col-lg-3 p-b-35 isotope-item cat-{{ $product->category_id }}">
                                 <div class="single-product">
                                     <div class="product-img">
-                                        <a href="/product/classic-white-shirt">
-                                            <img src="https://via.placeholder.com/300x350" alt="No Image">
+                                        <a href="javascript:void(0)">
+                                            @php
+                                                $pimg = $product->image
+                                                    ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view'])
+                                                    : 'https://via.placeholder.com/300x350';
+                                            @endphp
+                                            <img class="default-img" src="{{ $pimg }}" alt="{{ $product->name }}">
+                                            <img class="hover-img" src="{{ $pimg }}" alt="{{ $product->name }}">
                                             <span class="new">New</span>
                                         </a>
                                         <div class="button-head">
                                             <div class="product-action">
-                                                <a data-toggle="modal" data-target="#product1" title="Quick View" href="#"><i class="ti-eye"></i><span>Quick Shop</span></a>
-                                                <a title="Wishlist" href="/add-to-wishlist/classic-white-shirt"><i class="ti-heart"></i><span>Add to Wishlist</span></a>
+                                                <a data-toggle="modal" data-target="#productModal{{ $product->id }}"
+                                                    href="javascript:void(0);" title="Quick View"><i
+                                                        class="ti-eye"></i><span>Quick Shop</span></a>
+                                                <a title="Add to Wishlist" href="javascript:void(0);"><i
+                                                        class="ti-heart"></i><span>Add to Wishlist</span></a>
                                             </div>
                                             <div class="product-action-2">
-                                                <a title="Add to cart" href="/add-to-cart/classic-white-shirt">Add to cart</a>
+                                                @auth
+                                                    <a title="Add to cart"
+                                                        href="">Add to cart</a>
+                                                @else
+                                                    <a title="Add to cart" href="{{ route('login') }}">Add to
+                                                        cart</a>
+                                                @endauth
                                             </div>
                                         </div>
                                     </div>
                                     <div class="product-content">
-                                        <h3><a href="/product/classic-white-shirt">Classic White Shirt</a></h3>
+                                        <h3><a href="javascript:void(0);">{{ $product->name }}</a></h3>
                                         <div class="product-price">
-                                            <span>$35.99</span>
-                                            <del style="padding-left:4%;">$49.99</del>
+                                            <span>${{ number_format($product->price, 2) }}</span>
                                         </div>
+                                        @if ($product->category)
+                                            <p class="small text-muted mt-1 mb-0">
+                                                {{ $product->category->name }}</p>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        @empty
+                            <div class="col-12 p-4 text-center text-muted">
+                                <p>No products yet. Add categories and products from the admin panel.</p>
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </div>
     <section class="midium-banner">
@@ -62,24 +96,31 @@
         </div>
     </section>
   
-    <div class="modal fade" id="product1" tabindex="-1" role="dialog">
+    @foreach ($products as $product)
+    <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="ti-close" aria-hidden="true"></span></button>
+                    <h5 class="modal-title w-100">{{ $product->name }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span class="ti-close" aria-hidden="true"></span>
+                    </button>
                 </div>
                 <div class="modal-body">
                     <div class="row no-gutters">
                         <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                             <div class="product-gallery">
                                 <div class="quickview-slider-active">
-                                    <div class="single-slider"><img src="https://via.placeholder.com/400x450" alt="Classic White Shirt"></div>
+                                    <div class="single-slider">
+                                        <img src="{{ $product->image ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view']) : 'https://via.placeholder.com/400x450' }}"
+                                            alt="{{ $product->name }}">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
                             <div class="quickview-content">
-                                <h2>Classic White Shirt</h2>
+                                <h2>{{ $product->name }}</h2>
                                 <div class="quickview-ratting-review">
                                     <div class="quickview-ratting-wrap">
                                         <div class="quickview-ratting">
@@ -89,54 +130,27 @@
                                             <i class="yellow fa fa-star"></i>
                                             <i class="fa fa-star"></i>
                                         </div>
-                                        <a href="#"> (12 customer review)</a>
-                                    </div>
-                                    <div class="quickview-stock">
-                                        <span><i class="fa fa-check-circle-o"></i> 25 in stock</span>
                                     </div>
                                 </div>
-                                <h3><small><del class="text-muted">$49.99</del></small> $35.99</h3>
+                                <h3>${{ number_format($product->price, 2) }}</h3>
                                 <div class="quickview-peragraph">
-                                    <p>A timeless classic white shirt crafted from premium cotton. Perfect for both casual and formal occasions.</p>
+                                    <p>
+                                        @if ($product->description)
+                                            {!! nl2br(e($product->description)) !!}
+                                        @else
+                                            No description for this product yet.
+                                        @endif
+                                    </p>
                                 </div>
-                                <div class="size">
-                                    <div class="row">
-                                        <div class="col-lg-6 col-12">
-                                            <h5 class="title">Size</h5>
-                                            <select>
-                                                <option>S</option>
-                                                <option>M</option>
-                                                <option>L</option>
-                                                <option>XL</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <form action="/single-add-to-cart" method="POST" class="mt-4">
-                                    @csrf
-                                    <div class="quantity">
-                                        <div class="input-group">
-                                            <div class="button minus">
-                                                <button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
-                                                    <i class="ti-minus"></i>
-                                                </button>
-                                            </div>
-                                            <input type="hidden" name="slug" value="classic-white-shirt">
-                                            <input type="text" name="quant[1]" class="input-number" data-min="1" data-max="1000" value="1">
-                                            <div class="button plus">
-                                                <button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
-                                                    <i class="ti-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="add-to-cart">
-                                        <button type="submit" class="btn">Add to cart</button>
-                                        <a href="/add-to-wishlist/classic-white-shirt" class="btn min"><i class="ti-heart"></i></a>
-                                    </div>
-                                </form>
-                                <div class="default-social">
-                                    <div class="sharethis-inline-share-buttons"></div>
+                                @if ($product->category)
+                                    <p class="text-muted small">Category: {{ $product->category->name }}</p>
+                                @endif
+                                <div class="add-to-cart pt-2">
+                                    @auth
+                                        <a href="" class="btn">Add to cart</a>
+                                    @else
+                                        <a href="{{ route('login') }}" class="btn">Login to add to cart</a>
+                                    @endauth
                                 </div>
                             </div>
                         </div>
@@ -145,101 +159,16 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal Product 2 -->
-    <div class="modal fade" id="product2" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span class="ti-close" aria-hidden="true"></span></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row no-gutters">
-                        <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-                            <div class="product-gallery">
-                                <div class="quickview-slider-active">
-                                    <div class="single-slider"><img src="https://via.placeholder.com/400x450" alt="Floral Summer Dress"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-                            <div class="quickview-content">
-                                <h2>Floral Summer Dress</h2>
-                                <div class="quickview-ratting-review">
-                                    <div class="quickview-ratting-wrap">
-                                        <div class="quickview-ratting">
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                        </div>
-                                        <a href="#"> (28 customer review)</a>
-                                    </div>
-                                    <div class="quickview-stock">
-                                        <span><i class="fa fa-check-circle-o"></i> 15 in stock</span>
-                                    </div>
-                                </div>
-                                <h3><small><del class="text-muted">$69.99</del></small> $47.99</h3>
-                                <div class="quickview-peragraph">
-                                    <p>A vibrant floral summer dress with a relaxed fit. Light, breathable fabric ideal for warm days.</p>
-                                </div>
-                                <div class="size">
-                                    <div class="row">
-                                        <div class="col-lg-6 col-12">
-                                            <h5 class="title">Size</h5>
-                                            <select>
-                                                <option>XS</option>
-                                                <option>S</option>
-                                                <option>M</option>
-                                                <option>L</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <form action="/single-add-to-cart" method="POST" class="mt-4">
-                                    @csrf
-                                    <div class="quantity">
-                                        <div class="input-group">
-                                            <div class="button minus">
-                                                <button type="button" class="btn btn-primary btn-number" disabled="disabled" data-type="minus" data-field="quant[1]">
-                                                    <i class="ti-minus"></i>
-                                                </button>
-                                            </div>
-                                            <input type="hidden" name="slug" value="floral-summer-dress">
-                                            <input type="text" name="quant[1]" class="input-number" data-min="1" data-max="1000" value="1">
-                                            <div class="button plus">
-                                                <button type="button" class="btn btn-primary btn-number" data-type="plus" data-field="quant[1]">
-                                                    <i class="ti-plus"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="add-to-cart">
-                                        <button type="submit" class="btn">Add to cart</button>
-                                        <a href="/add-to-wishlist/floral-summer-dress" class="btn min"><i class="ti-heart"></i></a>
-                                    </div>
-                                </form>
-                                <div class="default-social">
-                                    <div class="sharethis-inline-share-buttons"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- End Modals -->
+@endforeach
 
 @endsection
 
-@push('styles')
+@section('pageSpecificCSS')
     <script type='text/javascript' src='https://platform-api.sharethis.com/js/sharethis.js#property=5f2e5abf393162001291e431&product=inline-share-buttons' async='async'></script>
     
-@endpush
+@endsection
 
-@push('scripts')
+@section('pageSpecificJS')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
 <script>
     var $topeContainer = $('.isotope-grid');
@@ -274,4 +203,4 @@
         });
     });
 </script>
-@endpush
+@endsection

@@ -8,8 +8,8 @@
                         <ul class="list-main">
                         
                             @auth 
-                                @if(Auth::user()->type === 'admin')
-                                    <li><i class="ti-user"></i> <a href="{{ url('/admin') }}" target="_blank" rel="noopener">Dashboard</a></li>
+                                @if(ensureUserHasRole('admin'))
+                                    <li><i class="ti-user"></i> <a href="{{ route('admin.dashboard') }}" rel="noopener">Dashboard</a></li>
                                 @endif                                
                                 <li>
                                     <form action="{{ route('logout') }}" method="POST">
