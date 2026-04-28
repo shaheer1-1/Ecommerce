@@ -111,26 +111,19 @@
                                         <a href="{{ route('cart.index') }}">View Cart</a>
                                     </div>
                                     <ul class="shopping-list">
-                                        @forelse ($headerData['items'] as $item)
-                                            @php
-                                                $product = $item->product;
-                                                $productName = $product ? $product->name : 'Product';
-                                                $productImg = $product && $product->image
-                                                    ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view'])
-                                                    : 'https://via.placeholder.com/80x80';
-                                            @endphp
+                                        @forelse ($headerData['itemData'] as $item)
                                             <li>
-                                                <a href="{{ route('cart.remove', $item->id) }}" class="remove" title="Remove this item">
+                                                <a href="{{ route('cart.remove', $item['id']) }}" class="remove" title="Remove this item">
                                                     <i class="fa fa-remove"></i>
                                                 </a>
                                                 <a class="cart-img" href="{{ route('cart.index') }}">
-                                                    <img src="{{ $productImg }}" alt="{{ $productName }}">
+                                                    <img src="{{ $item['productImg'] }}" alt="{{ $item['productName'] }}">
                                                 </a>
                                                 <h4>
-                                                    <a href="{{ route('cart.index') }}">{{ $productName }}</a>
+                                                    <a href="{{ route('cart.index') }}">{{ $item['productName'] }}</a>
                                                 </h4>
                                                 <p class="quantity">
-                                                    {{ $item->quantity }} x - <span class="amount">${{ number_format((float) $item->price, 2) }}</span>
+                                                    {{ $item['quantity'] }} x - <span class="amount">${{ number_format((float) $item['price'], 2) }}</span>
                                                 </p>
                                             </li>
                                         @empty
