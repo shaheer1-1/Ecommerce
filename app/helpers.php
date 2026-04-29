@@ -20,7 +20,7 @@ if (! function_exists('getHeaderCart')) {
         $headerItems = $headerCart ? $headerCart->items : collect();
 
         $headerQty = $headerItems->sum('quantity');
-
+        $itemData = [];
         $headerTotal = $headerItems->sum(fn($row) => $row->quantity * $row->price);
         foreach ($headerItems as $item) {
             $itemData[] = [
