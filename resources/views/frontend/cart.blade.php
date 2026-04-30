@@ -74,7 +74,7 @@
                     </table>
                 </div>
                 <a href="{{ route('home') }}" class="btn btn-primary" style="color: white;">Continue shopping</a>
-                <a href="" class="btn btn-secondary" style="color: white; margin-left:8px;">Proceed to checkout</a>
+                <a href="{{ route('checkout.index') }}" class="btn btn-secondary" style="color: white; margin-left:8px;">Proceed to checkout</a>
             @endif
         </div>
     </div>
