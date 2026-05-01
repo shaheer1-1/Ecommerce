@@ -2,40 +2,29 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\Order;
+use App\Models\Payment;
+use App\Models\PaymentMethod;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderService
 {
-    public function __construct(private StripeService $stripeService) {}
-    public function place(array $data)
+    public function __construct(private StripeService $stripe) {}
+
+    public function place(array $data): Order
     {
-        $user = Auth::user();
-        if (!$user) {
-            throw new \Exception('You must be logged in to place an order.');
-        }
+        $user = Auth::user() ?? throw new \Exception('Not logged in.');
         $cart = $user->cart?->load('items.product');
-        if (!$cart || $cart->items->isEmpty()) {
-            throw new \Exception('Your cart is empty.');
-        }
-        foreach ($cart->items as $item) {
-            if (! $item->product) {
-                throw new \Exception('A product in your cart is no longer available.');
-            }
-        }
+
+        if (!$cart || $cart->items->isEmpty()) throw new \Exception('Cart is empty.');
+
         return DB::transaction(function () use ($user, $cart, $data) {
-            $address = $user->addresses()->create(collect($data)->only([
-                'shipping_address',
-                'shipping_city',
-                'shipping_state',
-                'shipping_country',
-                'shipping_zip',
-            ])->toArray());
             $order = Order::create([
                 'user_id'     => $user->id,
-                'address_id'  => $address->id,
+                'address_id'  => $user->addresses()->create(collect($data)->only([
+                    'shipping_address', 'shipping_city', 'shipping_state', 'shipping_country', 'shipping_zip',
+                ])->toArray())->id,
                 'name'        => $data['name'],
                 'email'       => $data['email'],
                 'phone'       => $data['phone'],
@@ -50,48 +39,48 @@ class OrderService
                     'quantity'   => $item->quantity,
                 ]);
             }
-            $this->handlePayment($order, $data);
+
+            $this->handlePayment($order, $user, $data);
             $cart->items()->delete();
+
             return $order;
         });
     }
 
-    private function handlePayment(Order $order, array $data)
+    private function handlePayment(Order $order, $user, array $data): void
     {
-        $method = $data['payment_method'] ?? 'cod';
-        $total  = $order->total_price;
-        if ($method === 'cod') {
-            $this->storePayment($order, 'cod', 'pending', $total);
+        if (($data['payment_method'] ?? 'cod') === 'cod') {
+            Payment::create(['order_id' => $order->id, 'payment_method' => 'cod', 'status' => 'pending', 'amount' => $order->total_price]);
             return;
         }
-        if (!$this->stripeService->isConfigured()) {
-            throw new \Exception('Stripe is not configured.');
-        }
-        $intent = $this->stripeService->createPaymentIntent(
-            round($total * 100),
-            'usd',
-            ['order_id' => $order->id, 'user_id' => $order->user_id]
-        );
-        $intent = $this->stripeService->confirmPaymentIntent(
-            $intent->id,
-            $data['stripe_payment_method_id'] ?? ''
-        );
-        if ($intent->status !== 'succeeded') {
-            $this->storePayment($order, 'stripe', 'failed', $total);
-            throw new \Exception('Stripe payment failed.');
-        }
-        $this->storePayment($order, 'stripe', 'completed', $total);
-        $order->update(['status' => 'completed']);
-    }
-    private function storePayment(Order $order, string $method, string $status, float $amount): void
-    {
-        DB::table('payments')->insert([
-            'order_id'       => $order->id,
-            'payment_method' => $method,
-            'status'         => $status,
-            'amount'         => $amount,
-            'created_at'     => now(),
-            'updated_at'     => now(),
+        $paymentMethodId = $this->resolveCard($user->id, $data);
+        $this->stripe->charge($user, round($order->total_price * 100), $paymentMethodId, [
+            'order_id' => $order->id,
         ]);
+        Payment::create(['order_id' => $order->id, 'payment_method' => 'stripe', 'status' => 'completed', 'amount' => $order->total_price]);
+        $order->update(['status' => 'completed']);
+
+        $usedSavedCard = !empty($data['saved_payment_method_id']);
+        $wantsSave = filter_var($data['save_card'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        if (!$usedSavedCard && $wantsSave) {
+            $makePrimary = filter_var($data['make_primary'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $this->stripe->saveCard($user, $paymentMethodId, $makePrimary, $data['name'] ?? null);
+        }
+    }
+
+    private function resolveCard(int $userId, array $data)
+    {
+        if (!empty($data['saved_payment_method_id'])) {
+            $pm = PaymentMethod::where('id', $data['saved_payment_method_id'])
+                ->where('user_id', $userId)
+                ->firstOrFail();
+            return  $pm->stripe_payment_method_id;
+        }
+        if (!empty($data['stripe_payment_method_id'])) {
+            return $data['stripe_payment_method_id'];
+        }
+        return PaymentMethod::where('user_id', $userId)
+            ->where('is_primary', true)
+            ->value('stripe_payment_method_id') ?? throw new \Exception('No primary card found.');
     }
 }

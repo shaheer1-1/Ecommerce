@@ -3,6 +3,19 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+if (! function_exists('setting')) {
+    function setting(string $key, mixed $default = null): mixed
+    {
+         $settings = null;
+    
+        if ($settings === null) {
+            $settings = \App\Models\Setting::pluck('value', 'key');
+        }
+    
+        return $settings[$key] ?? $default;
+    }
+}
+
 if (! function_exists('ensureUserHasRole')) {
     function ensureUserHasRole(string $role)
     {

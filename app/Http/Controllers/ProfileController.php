@@ -12,11 +12,13 @@ class ProfileController extends Controller
     public function edit(Request $request): View
     {
         $user = $request->user();
-        $user->load('addresses');
+        $user->load('addresses', 'paymentMethods');
         $addr = $user->addresses->first();
         return view('frontend.profile', [
             'user' => $user,
             'addr' => $addr,
+            'stripePublicKey' => setting('stripe_public_key', ''),
+            'paymentMethods' => $user->paymentMethods()->orderByDesc('is_primary')->orderByDesc('id')->get(),
         ]);
     }
 

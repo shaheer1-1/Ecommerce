@@ -42,10 +42,17 @@ class OrderController extends Controller
             return redirect()->route('cart.index')
                 ->with('error', 'Your cart is empty');
         }
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        $paymentMethods = collect();
+        if ($user) {
+            $paymentMethods = $user->paymentMethods()->orderByDesc('is_primary')->orderByDesc('id')->get();
+        }
         return view('frontend.checkout', [
             'cart' => $cart,
             'total' => $cart->subtotal(),
-            'stripePublicKey' => config('services.stripe.key'),
+            'stripePublicKey' => setting('stripe_public_key', ''),
+            'paymentMethods' => $paymentMethods,
         ]);
     }
     public function placeOrder(OrderRequest $request, OrderService $orderService)

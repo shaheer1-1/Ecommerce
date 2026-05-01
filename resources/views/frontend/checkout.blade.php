@@ -15,6 +15,15 @@
         box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
     }
     .StripeElement--invalid { border-color: #dc3545; }
+    .saved-card-pick {
+        cursor: pointer;
+        transition: background-color .15s ease, border-color .15s ease;
+    }
+    .saved-card-pick:hover { background-color: #f8f9fa; }
+    .saved-card-pick.is-selected {
+        background-color: #e7f1ff;
+        border-color: #80bdff !important;
+    }
 </style>
 @endsection
 
@@ -25,7 +34,6 @@
         <div class="row align-items-end mb-3">
             <div class="col-12 col-md-8">
                 <h2 class="mb-1">Checkout</h2>
-                <p class="text-muted mb-0">Complete your shipping details and choose a payment method.</p>
             </div>
         </div>
 
@@ -47,6 +55,11 @@
                             @if ($errors->any())
                                 <div class="alert alert-danger"><strong>Please fix the errors below.</strong></div>
                             @endif
+
+                            <div id="checkout"
+                                 data-stripe-key="{{ $stripePublicKey }}"
+                                 data-save-card-url="{{ route('profile.payment-methods.store') }}"
+                                 data-csrf="{{ csrf_token() }}"></div>
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
@@ -126,14 +139,11 @@
 
                         </div>
                     </div>
-
-                    {{-- Payment --}}
                     <div class="card mb-4">
                         <div class="card-header bg-white">
                             <h5 class="mb-0">Payment</h5>
                         </div>
                         <div class="card-body">
-
                             <div class="custom-control custom-radio mb-2">
                                 <input type="radio" id="pm_card" name="payment_method" class="custom-control-input"
                                     value="card" {{ old('payment_method', 'card') === 'card' ? 'checked' : '' }}>
@@ -141,20 +151,83 @@
                                     Pay by card <span class="text-muted">(Stripe)</span>
                                 </label>
                             </div>
-
                             <div id="stripe-card-wrap" class="border rounded p-3 mb-3">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div>
-                                        <strong>Card details</strong>
-                                        <div class="text-muted" style="font-size:.9rem;">Secure payment powered by Stripe</div>
+                                @if (($paymentMethods ?? collect())->isNotEmpty())
+                                    <div class="mb-3">
+                                        <div class="custom-control custom-radio mb-2">
+                                            <input type="radio"
+                                                   id="card_source_saved"
+                                                   name="card_source"
+                                                   class="custom-control-input"
+                                                   value="saved"
+                                                {{ old('card_source', 'saved') === 'saved' ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="card_source_saved">
+                                                Use a saved card
+                                            </label>
+                                        </div>
+
+                                       
+                                        <div id="saved-cards-wrap" class="pl-3">
+                                            <div class="list-group">
+                                                @foreach ($paymentMethods as $pm)
+                                                    @php
+                                                        $defaultSavedId = old('saved_payment_method_id', $paymentMethods->firstWhere('is_primary', true)?->id);
+                                                        $isChecked = (string) $defaultSavedId === (string) $pm->id;
+                                                    @endphp
+                                                    <label
+                                                        class="list-group-item list-group-item-action saved-card-pick d-flex align-items-center mb-0 border {{ $isChecked ? 'is-selected' : '' }}"
+                                                        for="saved_pm_{{ $pm->id }}"
+                                                        data-saved-card-label>
+                                                        <input type="radio"
+                                                               id="saved_pm_{{ $pm->id }}"
+                                                               name="saved_payment_method_id"
+                                                               class="mr-3"
+                                                               value="{{ $pm->id }}"
+                                                            {{ $isChecked ? 'checked' : '' }}>
+                                                        <span class="flex-grow-1">
+                                                            <span class="font-weight-bold">{{ ucfirst($pm->brand ?? 'Card') }}</span>
+                                                            <span class="text-monospace">•••• {{ $pm->last4 ?? '----' }}</span>
+                                                            @if ($pm->is_primary)
+                                                                <span class="badge badge-light border ml-2">Primary</span>
+                                                            @endif
+                                                        </span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+
+                                        <div class="custom-control custom-radio mt-3">
+                                            <input type="radio"
+                                                   id="card_source_new"
+                                                   name="card_source"
+                                                   class="custom-control-input"
+                                                   value="new"
+                                                {{ old('card_source') === 'new' ? 'checked' : '' }}>
+                                            <label class="custom-control-label" for="card_source_new">
+                                                Add a new card
+                                            </label>
+                                        </div>
                                     </div>
-                                    <small class="text-muted"><i class="fa fa-lock"></i> SSL secure</small>
+                                @else
+                                    <input type="hidden" name="card_source" value="new">
+                                @endif
+
+                                <div id="new-card-wrap">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div>
+                                            <strong>Card details</strong>
+                                            <div class="text-muted" style="font-size:.9rem;">Secure payment powered by Stripe</div>
+                                        </div>
+                                        <small class="text-muted"><i class="fa fa-lock"></i> SSL secure</small>
+                                    </div>
+                                    <div id="card-element"></div>
+                                    
+                                    <div id="card-errors" class="text-danger mt-2" role="alert"></div>
+                                    <input type="hidden" name="stripe_payment_method_id" id="stripe_payment_method_id"
+                                        value="{{ old('stripe_payment_method_id') }}">
+                                    <input type="hidden" name="saved_payment_method_id_new" id="saved_payment_method_id"
+                                        value="{{ old('saved_payment_method_id') }}">
                                 </div>
-                                <div id="card-element"></div>
-                                <small class="text-muted d-block mt-2">We do not store your card details.</small>
-                                <div id="card-errors" class="text-danger mt-2" role="alert"></div>
-                                <input type="hidden" name="stripe_payment_method_id" id="stripe_payment_method_id"
-                                    value="{{ old('stripe_payment_method_id') }}">
                             </div>
 
                             <div class="custom-control custom-radio mb-0">
@@ -181,8 +254,6 @@
 
                 </form>
             </div>
-
-            {{-- RIGHT: Order Summary --}}
             <div class="col-lg-5">
                 <div class="card sticky-top" style="top: 20px;">
                     <div class="card-header bg-white">
@@ -233,19 +304,10 @@
                             <span class="text-muted">Subtotal</span>
                             <span class="font-weight-bold">${{ number_format($total, 2) }}</span>
                         </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Shipping</span>
-                            <span class="text-muted">Calculated at next step</span>
-                        </div>
                         <div class="d-flex justify-content-between">
                             <span class="h5 mb-0">Total</span>
                             <span class="h5 mb-0">${{ number_format($total, 2) }}</span>
                         </div>
-
-                        <div class="alert alert-light border mt-3 mb-0" style="font-size:.92rem;">
-                            <strong>Tip:</strong> Use a valid phone number so the courier can reach you.
-                        </div>
-
                     </div>
                 </div>
             </div>
@@ -256,43 +318,6 @@
 @endsection
 
 @section('pageSpecificJS')
-@if (!empty($stripePublicKey))
 <script src="https://js.stripe.com/v3/"></script>
-<script>
-    const stripe  = Stripe(@json($stripePublicKey));
-    const card    = stripe.elements().create('card', { hidePostalCode: true });
-    const form    = document.getElementById('checkout-form');
-    const cardEl  = document.getElementById('card-errors');
-    const pmInput = document.getElementById('stripe_payment_method_id');
-    const btn     = document.getElementById('place-order-btn');
-    const wrap    = document.getElementById('stripe-card-wrap');
-
-    card.mount('#card-element');
-
-    card.on('change', e => {
-        cardEl.textContent = e.error ? e.error.message : '';
-    });
-
-    document.querySelectorAll('input[name="payment_method"]').forEach(r =>
-        r.addEventListener('change', () => {
-            wrap.style.display = r.value === 'card' && r.checked ? '' : 'none';
-        })
-    );
-    wrap.style.display = document.querySelector('input[name="payment_method"]:checked')?.value === 'card' ? '' : 'none';
-    form.addEventListener('submit', async e => {
-        if (document.querySelector('input[name="payment_method"]:checked')?.value !== 'card') return;
-        e.preventDefault();
-        btn.disabled = true;
-        const { error, paymentMethod } = await stripe.createPaymentMethod({ type: 'card', card });
-        if (error) {
-            cardEl.textContent = error.message || 'Card payment failed. Please verify your details.';
-            btn.disabled = false;
-            return;
-        }
-
-        pmInput.value = paymentMethod.id;
-        form.submit();
-    });
-</script>
-@endif
+<script src="{{ asset('admin/js/checkout.js') }}"></script>
 @endsection

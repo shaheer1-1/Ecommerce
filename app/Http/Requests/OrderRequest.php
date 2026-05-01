@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OrderRequest extends FormRequest
 {
@@ -24,7 +24,19 @@ class OrderRequest extends FormRequest
             'shipping_zip' => 'required|string|max:30',
             'order_note' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:card,cod',
-            'stripe_payment_method_id' => 'nullable|required_if:payment_method,card|string|max:255',
+            'card_source' => 'nullable|in:saved,new',
+            'saved_payment_method_id' => ['nullable','integer','exists:payment_methods,id',
+                Rule::requiredIf(fn () => $this->input('payment_method') === 'card' && $this->input('card_source', 'new') === 'saved'),
+             ],
+            'stripe_payment_method_id' => ['nullable','string','max:255',
+                Rule::requiredIf(fn () =>
+                    $this->input('payment_method') === 'card'
+                    && $this->input('card_source', 'new') !== 'saved'
+                    && empty($this->input('saved_payment_method_id'))
+                ),
+            ],
+            'save_card' => 'nullable|boolean',
+            'make_primary' => 'nullable|boolean',
         ];
     }
 }
