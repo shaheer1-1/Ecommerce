@@ -1,5 +1,32 @@
 @extends('frontend.layouts.app')
 @section('title','Ecommerce Website')
+@section('specifcPageCSS')
+<style>
+    .single-product {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.product-img {
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.product-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.product-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+</style>
 @section('main-content')
 
     <div class="product-area section">
@@ -49,9 +76,6 @@
                                         </a>
                                         <div class="button-head">
                                             <div class="product-action">
-                                                <a data-toggle="modal" data-target="#productModal{{ $product->id }}"
-                                                    href="javascript:void(0);" title="Quick View"><i
-                                                        class="ti-eye"></i><span>Quick Shop</span></a>
                                                 <a title="Add to Wishlist" href="javascript:void(0);"><i
                                                         class="ti-heart"></i><span>Add to Wishlist</span></a>
                                             </div>
@@ -95,71 +119,6 @@
             </div>
         </div>
     </section>
-  
-    @foreach ($products as $product)
-    <div class="modal fade" id="productModal{{ $product->id }}" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title w-100">{{ $product->name }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span class="ti-close" aria-hidden="true"></span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="row no-gutters">
-                        <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-                            <div class="product-gallery">
-                                <div class="quickview-slider-active">
-                                    <div class="single-slider">
-                                        <img src="{{ $product->image ? route('document.unauth.download', ['type' => 'product-image', 'id' => $product->id, 'action' => 'view']) : 'https://via.placeholder.com/400x450' }}"
-                                            alt="{{ $product->name }}">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
-                            <div class="quickview-content">
-                                <h2>{{ $product->name }}</h2>
-                                <div class="quickview-ratting-review">
-                                    <div class="quickview-ratting-wrap">
-                                        <div class="quickview-ratting">
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="yellow fa fa-star"></i>
-                                            <i class="fa fa-star"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                                <h3>${{ number_format($product->price, 2) }}</h3>
-                                <div class="quickview-peragraph">
-                                    <p>
-                                        @if ($product->description)
-                                            {!! nl2br(e($product->description)) !!}
-                                        @else
-                                            No description for this product yet.
-                                        @endif
-                                    </p>
-                                </div>
-                                @if ($product->category)
-                                    <p class="text-muted small">Category: {{ $product->category->name }}</p>
-                                @endif
-                                <div class="add-to-cart pt-2">
-                                    @auth
-                                        <a href="{{ route('cart.add', $product->id) }}" class="btn">Add to cart</a>
-                                    @else
-                                        <a href="{{ route('login') }}" class="btn">Login to add to cart</a>
-                                    @endauth
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-@endforeach
 
 @endsection
 

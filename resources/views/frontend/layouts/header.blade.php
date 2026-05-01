@@ -50,13 +50,9 @@
                         <div class="search-bar">
                             <select>
                                 <option >All Category</option>
-                                <option>Category 1</option>
-                                <option>Category 2</option>
-                                <option>Category 3</option>
                             </select>
                             <form method="POST" action="">
                                 <input name="search" placeholder="Search Products Here....." type="search">
-                                <button class="btnn" type="submit"><i class="ti-search"></i></button>
                             </form>
                         </div>
                     </div>
@@ -161,7 +157,8 @@
                                         <ul class="nav main-menu menu navbar-nav">
                                             <li class="{{Request::path()=='home' ? 'active' : ''}}"><a href="/">Home</a></li>
                                                 <li class="@if(Request::path()=='product-grids'||Request::path()=='product-lists')  active  @endif"><a href="/">Products</a><span class="new">New</span></li>												
-                                        </ul>
+                                                <li><a href="{{ route('settings') }}">Settings</a></li>												
+                                            </ul>
                                     </div>
                                 </div>
                             </nav>

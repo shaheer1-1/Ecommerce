@@ -40,7 +40,11 @@
 									<span class="side-menu__label">Products</span></a>
 								
 							</li>
-							
+							<li class="slide">
+								<a class="side-menu__item" data-bs-toggle="slide" href="{{ route('orders.index') }}">
+									<span class="side-menu__label">Orders</span></a>
+								
+							</li>
 						</ul>
 						<div class="slide-right" id="slide-right"><svg xmlns="http://www.w3.org/2000/svg" fill="#7b8191"
 								width="24" height="24" viewBox="0 0 24 24">

@@ -23,7 +23,7 @@
 							@if ($category->image)
 								<div class="mb-3">
 									<p class="form-label mb-1">Current image</p>
-									<img src="{{ route('admin.document.download', ['type' => 'category-image', 'id' => $category->id, 'action' => 'view']) }}" alt="" width="120" class="rounded border">
+									<img src="{{ route('admin.document.download', ['type' => 'category-image', 'id' => $category->id, 'action' => 'view']) }}" alt="" width="120">
 								</div>
 							@endif
 							<div class="mb-3">

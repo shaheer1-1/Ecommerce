@@ -47,7 +47,7 @@
 										<tr>
 											<td>
 												@if ($row->image)
-													<img src="{{ route('admin.document.download', ['type' => 'product-image', 'id' => $row->id, 'action' => 'view']) }}" alt="" width="60" class="rounded">
+													<img src="{{ route('admin.document.download', ['type' => 'product-image', 'id' => $row->id, 'action' => 'view']) }}" alt="" width="60">
 												@else
 													<span class="text-muted small">—</span>
 												@endif

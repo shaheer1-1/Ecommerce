@@ -66,7 +66,6 @@
 </head>
 <body class="js">
 	
-	<!-- Preloader -->
 	<div class="preloader">
 		<div class="preloader-inner">
 			<div class="preloader-icon">
@@ -83,7 +82,6 @@
         {{session('success')}}
     </div>
 @endif
-
 
 @if(session('error'))
     <div class="alert alert-danger alert-dismissable fade show text-center">
